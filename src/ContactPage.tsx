@@ -1,9 +1,17 @@
-import { Form, ActionFunctionArgs, redirect } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 
 type Contact = { name: string; email: string; reason: string; notes: string };
 
 export function ContactPage() {
   const fieldStyle = "flex flex-col mb-2";
+  const { register, handleSubmit } = useForm<Contact>();
+  const navigate = useNavigate();
+
+  function onSubmit(contact: Contact) {
+    console.log("Submitted details:", contact);
+    navigate(`/thank-you/${contact.name}`);
+  }
 
   return (
     <div className={fieldStyle}>
@@ -11,14 +19,14 @@ export function ContactPage() {
       <p className="mb-3">
         If you enter your details we'll get back to you as soon as we can.
       </p>
-      <Form method="post">
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className={fieldStyle}>
           <label htmlFor="name">Your name</label>
           <input
             className="border"
             type="text"
             id="name"
-            name="name"
+            {...register("name")}
             required
           />
         </div>
@@ -28,14 +36,14 @@ export function ContactPage() {
             className="border"
             type="email"
             id="email"
-            name="email"
+            {...register("email")}
             required
             pattern="\S+@\S+\.\S+"
           />
         </div>
         <div className={fieldStyle}>
           <label htmlFor="reason">Reason you need to contact us</label>
-          <select id="reason" name="reason" required>
+          <select id="reason" {...register("reason")} required>
             <option value=""></option> <option value="Support">Support</option>
             <option value="Feedback">Feedback</option>
             <option value="Other">Other</option>
@@ -43,7 +51,7 @@ export function ContactPage() {
         </div>
         <div className={fieldStyle}>
           <label htmlFor="notes">Additional notes</label>
-          <textarea className="border" id="notes" name="notes" />
+          <textarea className="border" id="notes" {...register("notes")} />
         </div>
         <div>
           <button
@@ -53,19 +61,7 @@ export function ContactPage() {
             Submit
           </button>
         </div>
-      </Form>
+      </form>
     </div>
   );
-}
-
-export async function contactPageAction({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const contact = {
-    name: formData.get("name"),
-    email: formData.get("email"),
-    reason: formData.get("reason"),
-    notes: formData.get("notes"),
-  } as Contact;
-  console.log("Submitted details:", contact);
-  return redirect(`/thank-you/${formData.get("name")}`);
 }
